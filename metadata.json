@@ -1,0 +1,7 @@
+{
+  "name": "MS SUPERVISION",
+  "description": "Professional condominium supervision app for cleaning and maintenance inspections with PDF report generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
