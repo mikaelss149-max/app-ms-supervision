@@ -12,12 +12,20 @@ import { Condominium, Inspection } from './types';
 const App: React.FC = () => {
   const [condos, setCondos] = useState<Condominium[]>(() => {
     const saved = localStorage.getItem('ms_supervision_condos');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   });
 
   const [inspections, setInspections] = useState<Inspection[]>(() => {
     const saved = localStorage.getItem('ms_supervision_inspections');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   });
 
   useEffect(() => {

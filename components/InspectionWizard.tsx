@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Condominium, Inspection, AreaInspection, InspectionStatus } from '../types';
@@ -31,23 +30,25 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      Array.from(files).forEach(file => {
+      // Added explicit type to 'file' to resolve 'unknown' not assignable to 'Blob' error on line 49
+      Array.from(files).forEach((file: File) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = reader.result as string;
-          setAreaInspections(prev => {
-            const updated = [...prev];
-            updated[currentStep] = {
-              ...updated[currentStep],
-              photos: [...updated[currentStep].photos, base64]
-            };
-            return updated;
-          });
+          if (base64) {
+            setAreaInspections(prev => {
+              const updated = [...prev];
+              updated[currentStep] = {
+                ...updated[currentStep],
+                photos: [...updated[currentStep].photos, base64]
+              };
+              return updated;
+            });
+          }
         };
         reader.readAsDataURL(file);
       });
     }
-    // Reset input value to allow selecting same file again
     e.target.value = '';
   };
 
@@ -69,13 +70,13 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
     });
   };
 
-  const updateNotes = useCallback((notes: string) => {
+  const updateNotes = (notes: string) => {
     setAreaInspections(prev => {
       const updated = [...prev];
       updated[currentStep] = { ...updated[currentStep], notes };
       return updated;
     });
-  }, [currentStep]);
+  };
 
   const nextStep = () => {
     if (currentStep < areaInspections.length - 1) {
@@ -136,7 +137,7 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
               onClick={() => updateStatus(InspectionStatus.CONFORME)}
               className={`p-5 rounded-2xl flex flex-col items-center justify-center space-y-3 border-2 transition-all ${currentArea.status === InspectionStatus.CONFORME ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md' : 'border-white bg-white text-slate-300 shadow-sm'}`}
             >
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center ${currentArea.status === InspectionStatus.CONFORME ? 'bg-emerald-500 text-white shadow-lg rotate-0 scale-110' : 'bg-slate-100'}`}>
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center ${currentArea.status === InspectionStatus.CONFORME ? 'bg-emerald-500 text-white shadow-lg scale-110' : 'bg-slate-100'}`}>
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
               </div>
               <span className="font-black text-[10px] uppercase tracking-wider">Conforme</span>
@@ -159,7 +160,7 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
               value={currentArea.notes}
               onChange={e => updateNotes(e.target.value)}
               className="w-full p-5 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-slate-900 outline-none min-h-[160px] text-slate-700 text-base"
-              placeholder="Descreva detalhes ou irregularidades encontradas aqui..."
+              placeholder="Descreva detalhes..."
               autoComplete="off"
             />
           </div>
@@ -171,21 +172,21 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
             </div>
             <div className="grid grid-cols-3 gap-3">
               {currentArea.photos.map((photo, index) => (
-                <div key={index} className="relative aspect-square animate-in zoom-in duration-300">
+                <div key={index} className="relative aspect-square">
                   <img src={photo} className="w-full h-full object-cover rounded-2xl border-2 border-white shadow-sm" alt="Vistoria" />
                   <button 
                     onClick={() => removePhoto(index)}
-                    className="absolute -top-2 -right-2 bg-slate-900 text-white rounded-full p-1.5 shadow-xl active:scale-90 transition-transform"
+                    className="absolute -top-2 -right-2 bg-slate-900 text-white rounded-full p-1.5 shadow-xl"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               ))}
               {currentArea.photos.length < 6 && (
-                <label className="aspect-square bg-white rounded-2xl flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 active:bg-slate-200 transition-all border-2 border-dashed border-slate-200 shadow-sm">
+                <label className="aspect-square bg-white rounded-2xl flex flex-col items-center justify-center text-slate-400 cursor-pointer border-2 border-dashed border-slate-200 shadow-sm">
                   <input type="file" multiple accept="image/*" onChange={handlePhoto} className="hidden" />
                   <svg className="w-8 h-8 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <span className="text-[10px] font-black mt-2 opacity-60">FOTO</span>
+                  <span className="text-[10px] font-black mt-2">FOTO</span>
                 </label>
               )}
             </div>
@@ -193,12 +194,12 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
         </div>
       </main>
 
-      <footer className="p-6 bg-white border-t flex space-x-4 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-10">
+      <footer className="p-6 bg-white border-t flex space-x-4 z-10">
         {currentStep > 0 && (
           <button 
             type="button"
             onClick={prevStep}
-            className="flex-1 border-2 border-slate-100 text-slate-500 py-4 rounded-xl font-black text-sm uppercase tracking-wider active:bg-slate-50"
+            className="flex-1 border-2 border-slate-100 text-slate-500 py-4 rounded-xl font-black text-sm uppercase tracking-wider"
           >
             Anterior
           </button>
@@ -206,7 +207,7 @@ const InspectionWizard: React.FC<Props> = ({ condos, saveInspection }) => {
         <button 
           type="button"
           onClick={nextStep}
-          className={`bg-slate-900 text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-[0.97] transition-all ${currentStep > 0 ? 'flex-[1.5]' : 'w-full'}`}
+          className={`bg-slate-900 text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-xl ${currentStep > 0 ? 'flex-[1.5]' : 'w-full'}`}
         >
           {currentStep < areaInspections.length - 1 ? 'Próximo Item' : 'Finalizar Vistoria'}
         </button>
